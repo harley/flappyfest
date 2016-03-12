@@ -14,6 +14,7 @@ class ViewController: UIViewController {
     var push: UIPushBehavior!
     var birdProperties: UIDynamicItemBehavior!
     var pipePush: UIPushBehavior!
+    var collision: UICollisionBehavior!
     
     var isPlaying = false
     var birdOrigin: CGPoint!
@@ -52,6 +53,9 @@ class ViewController: UIViewController {
         pipePush = UIPushBehavior(items: [], mode: UIPushBehaviorMode.Continuous)
         pipePush.active = true
         pipePush.pushDirection = CGVectorMake(-1.0, 0)
+        
+        collision = UICollisionBehavior(items: [birdView])
+        
         drawPipes()
     }
     
@@ -84,6 +88,7 @@ class ViewController: UIViewController {
     func setupPipe(pipe: UIView) {
         view.addSubview(pipe)
         pipePush.addItem(pipe)
+        collision.addItem(pipe)
     }
     
     func setupBehaviors() {
@@ -91,6 +96,7 @@ class ViewController: UIViewController {
         animator.addBehavior(gravity)
         animator.addBehavior(birdProperties)
         animator.addBehavior(pipePush)
+        animator.addBehavior(collision)
     }
     
     override func didReceiveMemoryWarning() {
