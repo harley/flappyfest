@@ -13,6 +13,7 @@ class ViewController: UIViewController {
     var gravity: UIGravityBehavior!
     var push: UIPushBehavior!
     var birdProperties: UIDynamicItemBehavior!
+    var pipePush: UIPushBehavior!
     
     var isPlaying = false
     var birdOrigin: CGPoint!
@@ -47,23 +48,49 @@ class ViewController: UIViewController {
         push.pushDirection = CGVectorMake(0, -1.1)
         
         birdProperties = UIDynamicItemBehavior(items: [birdView])
+        
+        pipePush = UIPushBehavior(items: [], mode: UIPushBehaviorMode.Continuous)
+        pipePush.active = true
+        pipePush.pushDirection = CGVectorMake(-1.0, 0)
+        drawPipes()
     }
     
     @IBAction func onScreenTap(sender: UITapGestureRecognizer) {
         print("tapping on screen")
         
         let currentVelocity = birdProperties.linearVelocityForItem(birdView)
-        print("current velocity", currentVelocity)
+        // print("current velocity", currentVelocity)
         birdProperties.addLinearVelocity(CGPoint(x: currentVelocity.x, y: -currentVelocity.y), forItem: birdView)
         
         push.active = true
         animator.addBehavior(push)
     }
     
+    func drawPipes() {
+        let SCREEN_HEIGHT = Int(view.frame.height)
+        let SCREEN_WIDTH  = Int(view.frame.width)
+        let MAX_PIPE_HEIGHT = 200
+        
+        let bottomPipe = UIImageView(image: UIImage(named: "pipeBottom")!)
+        bottomPipe.frame = CGRect(x: SCREEN_WIDTH - 40, y: SCREEN_HEIGHT - MAX_PIPE_HEIGHT, width: 40, height: 320)
+        
+        let topPipe = UIImageView(image: UIImage(named: "pipeTop")!)
+        topPipe.frame = CGRect(x: SCREEN_WIDTH - 40, y: MAX_PIPE_HEIGHT - 320, width: 40, height: 320)
+        
+        setupPipe(bottomPipe)
+        setupPipe(topPipe)
+    }
+    
+    func setupPipe(pipe: UIView) {
+        view.addSubview(pipe)
+        pipePush.addItem(pipe)
+    }
+    
     func setupBehaviors() {
         // we will add more behaviors soon
         animator.addBehavior(gravity)
         animator.addBehavior(birdProperties)
+        animator.addBehavior(pipePush)
     }
     
     override func didReceiveMemoryWarning() {
