@@ -22,6 +22,8 @@ class ViewController: UIViewController {
     
     var isPlaying = false
     var birdOrigin: CGPoint!
+
+    var timer: NSTimer!
     
     @IBAction func onPlayTapped(sender: UIButton) {
         if isPlaying {
@@ -30,11 +32,14 @@ class ViewController: UIViewController {
             isPlaying = false
             birdView.frame.origin = birdOrigin
             animator.removeAllBehaviors()
+            timer.invalidate()
         } else {
             print("PLAYING")
             sender.setTitle("Stop", forState: .Normal)
             isPlaying = true
             setupBehaviors()
+            timer = NSTimer.scheduledTimerWithTimeInterval(2, target: self, selector: #selector(ViewController.onTimer), userInfo: nil, repeats: true)
+
         }
     }
     
@@ -42,7 +47,7 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+
         // store bird position
         birdOrigin = birdView.frame.origin
         
@@ -56,44 +61,51 @@ class ViewController: UIViewController {
         
         pipePush = UIPushBehavior(items: [], mode: UIPushBehaviorMode.Continuous)
         pipePush.active = true
-        pipePush.pushDirection = CGVectorMake(-100.0, 0)
+        pipePush.pushDirection = CGVectorMake(-50.0, 0)
         
         collision = UICollisionBehavior(items: [birdView])
 
         pipeProperties = UIDynamicItemBehavior()
         pipeProperties.density = 100
+        pipeProperties.resistance = 0
         drawPipes()
     }
     
     @IBAction func onScreenTap(sender: UITapGestureRecognizer) {
         print("tapping on screen")
-        
-        let currentVelocity = birdProperties.linearVelocityForItem(birdView)
-        // print("current velocity", currentVelocity)
-        birdProperties.addLinearVelocity(CGPoint(x: currentVelocity.x, y: -currentVelocity.y), forItem: birdView)
-        
-        push.active = true
-        animator.addBehavior(push)
+        if isPlaying {
+            let currentVelocity = birdProperties.linearVelocityForItem(birdView)
+            // print("current velocity", currentVelocity)
+            birdProperties.addLinearVelocity(CGPoint(x: currentVelocity.x, y: -currentVelocity.y), forItem: birdView)
+            push.active = true
+            animator.addBehavior(push)
+        }
     }
     
-    func drawPipes() {
+    func drawPipes(onScreen:Bool = true) {
         let SCREEN_HEIGHT = Int(view.frame.height)
         let SCREEN_WIDTH  = Int(view.frame.width)
-        let MAX_PIPE_HEIGHT = 200
-        
-        let bottomPipe = UIImageView(image: UIImage(named: "pipeBottom")!)
-        bottomPipe.frame = CGRect(x: SCREEN_WIDTH - 40, y: SCREEN_HEIGHT - MAX_PIPE_HEIGHT, width: 40, height: 320)
-        
+        let FULL_PIPE_HEIGHT = 320
+        let FULL_PIPE_WIDTH  = 40
+        let offsetX = onScreen ? (SCREEN_WIDTH - 40) : SCREEN_WIDTH
+
         let topPipe = UIImageView(image: UIImage(named: "pipeTop")!)
-        topPipe.frame = CGRect(x: SCREEN_WIDTH - 40, y: MAX_PIPE_HEIGHT - 320, width: 40, height: 320)
-        
-        setupPipe(bottomPipe)
+        // starting y is between -200 to -120, so that the visible pipe is 120 to 200 long
+        topPipe.frame = CGRect(x: offsetX,
+                               y: 0 - 120 - Int(arc4random_uniform(80)),
+                               width: FULL_PIPE_WIDTH, height: FULL_PIPE_HEIGHT)
         setupPipe(topPipe)
+
+        // offset starting y from the bottom
+        let bottomPipe = UIImageView(image: UIImage(named: "pipeBottom")!)
+        bottomPipe.frame = CGRect(x: offsetX,
+                                  y: SCREEN_HEIGHT - 120 - Int(arc4random_uniform(80)),
+                                  width: FULL_PIPE_WIDTH, height: FULL_PIPE_HEIGHT)
+        setupPipe(bottomPipe)
     }
     
     func setupPipe(pipe: UIView) {
         view.addSubview(pipe)
-
         pipeProperties.addItem(pipe)
         pipePush.addItem(pipe)
         collision.addItem(pipe)
@@ -107,9 +119,8 @@ class ViewController: UIViewController {
         animator.addBehavior(collision)
         animator.addBehavior(pipeProperties)
     }
-    
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+
+    func onTimer() {
+        drawPipes(false)
     }
 }
