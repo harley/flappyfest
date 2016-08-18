@@ -17,7 +17,6 @@ class ViewController: UIViewController {
     var push: UIPushBehavior!
     var birdProperties: UIDynamicItemBehavior!
     var pipeProperties: UIDynamicItemBehavior!
-    var pipePush: UIPushBehavior!
     var collision: UICollisionBehavior!
     
     var isPlaying = false
@@ -59,10 +58,6 @@ class ViewController: UIViewController {
         birdProperties = UIDynamicItemBehavior(items: [birdView])
         birdProperties.allowsRotation = false
         
-        pipePush = UIPushBehavior(items: [], mode: UIPushBehaviorMode.Continuous)
-        pipePush.active = true
-        pipePush.pushDirection = CGVectorMake(-50.0, 0)
-        
         collision = UICollisionBehavior(items: [birdView])
 
         pipeProperties = UIDynamicItemBehavior()
@@ -72,10 +67,8 @@ class ViewController: UIViewController {
     }
     
     @IBAction func onScreenTap(sender: UITapGestureRecognizer) {
-        print("tapping on screen")
         if isPlaying {
             let currentVelocity = birdProperties.linearVelocityForItem(birdView)
-            // print("current velocity", currentVelocity)
             birdProperties.addLinearVelocity(CGPoint(x: currentVelocity.x, y: -currentVelocity.y), forItem: birdView)
             push.active = true
             animator.addBehavior(push)
@@ -107,15 +100,13 @@ class ViewController: UIViewController {
     func setupPipe(pipe: UIView) {
         view.addSubview(pipe)
         pipeProperties.addItem(pipe)
-        pipePush.addItem(pipe)
+        pipeProperties.addLinearVelocity(CGPoint(x: -100, y: 0), forItem: pipe)
         collision.addItem(pipe)
     }
     
     func setupBehaviors() {
-        // we will add more behaviors soon
         animator.addBehavior(gravity)
         animator.addBehavior(birdProperties)
-        animator.addBehavior(pipePush)
         animator.addBehavior(collision)
         animator.addBehavior(pipeProperties)
     }
