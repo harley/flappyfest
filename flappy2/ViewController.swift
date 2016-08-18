@@ -9,10 +9,14 @@
 import UIKit
 
 class ViewController: UIViewController {
-    var animator: UIDynamicAnimator!
+    lazy var animator: UIDynamicAnimator = {
+        return UIDynamicAnimator(referenceView: self.view)
+    }()
+
     var gravity: UIGravityBehavior!
     var push: UIPushBehavior!
     var birdProperties: UIDynamicItemBehavior!
+    var pipeProperties: UIDynamicItemBehavior!
     var pipePush: UIPushBehavior!
     var collision: UICollisionBehavior!
     
@@ -42,20 +46,22 @@ class ViewController: UIViewController {
         // store bird position
         birdOrigin = birdView.frame.origin
         
-        animator = UIDynamicAnimator(referenceView: view)
         gravity = UIGravityBehavior(items: [birdView])
         push = UIPushBehavior(items: [birdView], mode: UIPushBehaviorMode.Instantaneous)
         push.active = false
         push.pushDirection = CGVectorMake(0, -1.1)
         
         birdProperties = UIDynamicItemBehavior(items: [birdView])
+        birdProperties.allowsRotation = false
         
         pipePush = UIPushBehavior(items: [], mode: UIPushBehaviorMode.Continuous)
         pipePush.active = true
-        pipePush.pushDirection = CGVectorMake(-1.0, 0)
+        pipePush.pushDirection = CGVectorMake(-100.0, 0)
         
         collision = UICollisionBehavior(items: [birdView])
-        
+
+        pipeProperties = UIDynamicItemBehavior()
+        pipeProperties.density = 100
         drawPipes()
     }
     
@@ -87,6 +93,8 @@ class ViewController: UIViewController {
     
     func setupPipe(pipe: UIView) {
         view.addSubview(pipe)
+
+        pipeProperties.addItem(pipe)
         pipePush.addItem(pipe)
         collision.addItem(pipe)
     }
@@ -97,6 +105,7 @@ class ViewController: UIViewController {
         animator.addBehavior(birdProperties)
         animator.addBehavior(pipePush)
         animator.addBehavior(collision)
+        animator.addBehavior(pipeProperties)
     }
     
     override func didReceiveMemoryWarning() {
